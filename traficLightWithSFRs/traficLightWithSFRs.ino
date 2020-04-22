@@ -12,7 +12,7 @@
  //#define yellowState 	1
  //#define redState 		2
 
-int state = 0;
+byte state = 0;
 
 void setup()
 {
