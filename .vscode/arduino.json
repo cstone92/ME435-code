@@ -1,6 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM11",
-    "sketch": "traficLightArduinoLibrary\\traficLightqrduinoLibrary.ino",
-    "programmer": "ArduinoISP"
+    "sketch": "traficLightWithSFRs\\traficLightWithSFRs.ino"
 }
