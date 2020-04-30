@@ -13,7 +13,6 @@
  //#define redState 		2
 
 byte state = 0;
-
 void setup()
 {
   //Serial.begin(9600);
