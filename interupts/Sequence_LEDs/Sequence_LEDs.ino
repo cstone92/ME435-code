@@ -7,7 +7,6 @@
 #define PIN_PUSHBUTTON_YELLOW 2
 #define PIN_PUSHBUTTON_GREEN 1
 #define PIN_PUSHBUTTON_BLUE 0
-
 #define ON 1
 #define OFF 0
 

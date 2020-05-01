@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM6",
-    "sketch": "Sequence_LEDs\\Sequence_LEDs.ino"
+    "sketch": "interupts\\Sequence_LEDs\\Sequence_LEDs.ino"
 }
