@@ -14,13 +14,22 @@
 #define PRESSED 0
 #define NOTPRESSED 1
 
-uint8_t blueState = HIGH;
-uint8_t lastBlueState = HIGH;
-uint8_t greenState = HIGH;
-uint8_t lastGreenState = HIGH;
+uint8_t blueState = LOW;
+uint8_t lastBlueState = LOW;
+uint8_t greenState = LOW;
+uint8_t lastGreenState = LOW;
 
-uint8_t currentIndex;
-uint8_t savedLeds[10];
+uint8_t currentIndex = 0;
+uint8_t savedLeds[10] = {PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE,
+                         PIN_LED_BLUE};
 
 volatile uint8_t mainEventFlags = 0;
 #define FLAG_YELLOW_PUSHBUTTON 0X01
@@ -34,33 +43,26 @@ void setup() {
   pinMode(PIN_LED_GREEN, OUTPUT);
   pinMode(PIN_LED_BLUE, OUTPUT);
 
+  pinMode(PIN_PUSHBUTTON_RED, INPUT_PULLUP);
+  pinMode(PIN_PUSHBUTTON_YELLOW, INPUT_PULLUP);
+  pinMode(PIN_PUSHBUTTON_GREEN, INPUT_PULLUP);
+  pinMode(PIN_PUSHBUTTON_BLUE, INPUT_PULLUP);
+
   attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_YELLOW), yellow_pushbutton_isr, FALLING);
   attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_RED), red_pushbutton_isr, FALLING);
-
-  uint8_t currentIndex = 0;
-  uint8_t savedLeds[10] = {PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE,
-                           PIN_LED_BLUE};
 }
 
 void loop() {
   // give feedback when a button is pressed
-  digitalWrite(PIN_LED_RED, (digitalRead(PIN_PUSHBUTTON_RED) == PRESSED));
-  digitalWrite(PIN_LED_YELLOW, (digitalRead(PIN_PUSHBUTTON_YELLOW) == PRESSED));
+  digitalWrite(PIN_LED_RED, !digitalRead(PIN_PUSHBUTTON_RED));
+  digitalWrite(PIN_LED_YELLOW, !digitalRead(PIN_PUSHBUTTON_YELLOW));
   digitalWrite(PIN_LED_GREEN, (digitalRead(PIN_PUSHBUTTON_GREEN) == PRESSED));
   digitalWrite(PIN_LED_BLUE, (digitalRead(PIN_PUSHBUTTON_BLUE) == PRESSED));
 
   if (currentIndex < 10) {
     //check for yellow isr variable
     if (mainEventFlags & FLAG_YELLOW_PUSHBUTTON) {
-      delay(30);
+      delay(60);
       mainEventFlags &= ~FLAG_YELLOW_PUSHBUTTON;
       if (digitalRead(PIN_PUSHBUTTON_YELLOW) == PRESSED) {
         //DO THE ACTION!
@@ -72,7 +74,7 @@ void loop() {
 
     //check for RED isr variable
     if (mainEventFlags & FLAG_RED_PUSHBUTTON) {
-      delay(30);
+      delay(60);
       mainEventFlags &= ~FLAG_RED_PUSHBUTTON;
       if (digitalRead(PIN_PUSHBUTTON_RED) == PRESSED) {
         //DO THE ACTION!

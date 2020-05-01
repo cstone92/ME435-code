@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
-    "port": "COM11",
-    "sketch": "traficLightWithSFRs\\traficLightWithSFRs.ino"
+    "port": "COM6",
+    "sketch": "Sequence_LEDs\\Sequence_LEDs.ino"
 }
