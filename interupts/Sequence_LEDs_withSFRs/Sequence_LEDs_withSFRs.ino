@@ -1,12 +1,12 @@
-#define PIN_LED_RED 10
-#define PIN_LED_YELLOW 9
-#define PIN_LED_GREEN 6
-#define PIN_LED_BLUE 5
+// #define PIN_LED_RED 10
+// #define PIN_LED_YELLOW 9
+// #define PIN_LED_GREEN 6
+// #define PIN_LED_BLUE 5
 
-#define PIN_PUSHBUTTON_RED 3
-#define PIN_PUSHBUTTON_YELLOW 2
-#define PIN_PUSHBUTTON_GREEN 1
-#define PIN_PUSHBUTTON_BLUE 0
+// #define PIN_PUSHBUTTON_RED 3
+// #define PIN_PUSHBUTTON_YELLOW 2
+// #define PIN_PUSHBUTTON_GREEN 1
+// #define PIN_PUSHBUTTON_BLUE 0
 
 // Output PORTs and BITs
 #define REG_PORT_LED_RED PORTB
@@ -32,11 +32,11 @@
 #define REG_PIN_PUSHBUTTON_BLUE PIND
 #define BIT_PUSHBUTTON_BLUE 0
 
-#define ON 1
-#define OFF 0
+#define ON HIGH
+#define OFF LOW
 
-#define PRESSED 0
-#define NOTPRESSED 1
+#define PRESSED LOW
+#define NOTPRESSED HIGH
 
 uint8_t blueState = HIGH;
 uint8_t lastBlueState = HIGH;
@@ -44,16 +44,16 @@ uint8_t greenState = HIGH;
 uint8_t lastGreenState = HIGH;
 
 uint8_t currentIndex = 0;
-uint8_t savedLeds[10] = {PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE,
-                         PIN_LED_BLUE};
+//uint8_t savedLeds[10] = {PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE,
+                        //  PIN_LED_BLUE};
 
 volatile uint8_t mainEventFlags = 0;
 #define FLAG_YELLOW_PUSHBUTTON 0X01
@@ -73,10 +73,15 @@ void setup() {
   REG_PORT_PUSHBUTTON_YELLOW |= _BV(BIT_PUSHBUTTON_YELLOW);
   REG_PORT_PUSHBUTTON_GREEN |= _BV(BIT_PUSHBUTTON_GREEN);
   REG_PORT_PUSHBUTTON_BLUE |= _BV(BIT_PUSHBUTTON_BLUE);
+  // pinMode(PIN_PUSHBUTTON_RED, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_YELLOW, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_GREEN, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_BLUE, INPUT_PULLUP);
 
-  // update this later
-  attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_YELLOW), yellow_pushbutton_isr, FALLING);
-  attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_RED), red_pushbutton_isr, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_YELLOW), yellow_pushbutton_isr, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_RED), red_pushbutton_isr, FALLING);
+  EICRA = _BV(ISC11) | _BV(ISC01);  // set INT0 and INT1 to FALLING edge interrupts()
+  EIMSK = _BV(INT0) | _BV(INT1);    // TURNS ON BOTH INT0 AND INT1
 }
 
 void feedbackLEDs() {
@@ -148,7 +153,7 @@ void loop() {
       }
     }
 
-    greenState = digitalRead(PIN_PUSHBUTTON_GREEN);
+    greenState = bit_is_set(REG_PIN_PUSHBUTTON_GREEN, BIT_PUSHBUTTON_GREEN);
     if (greenState != lastGreenState) {
       if (greenState == PRESSED) {
         //DO THE ACTION!
@@ -162,7 +167,7 @@ void loop() {
     lastGreenState = greenState;
   }
 
-  blueState = digitalRead(PIN_PUSHBUTTON_BLUE);
+  blueState = bit_is_set(REG_PIN_PUSHBUTTON_BLUE, BIT_PUSHBUTTON_BLUE);
   if (blueState != lastBlueState) {
     if (blueState == PRESSED) {
       //DO THE ACTION!
@@ -181,29 +186,31 @@ void loop() {
   lastBlueState = blueState;
 }
 
-void runSequence() {
+//void runSequence() {
   // for loop for the array
   // get the current value
   // light that value for 1000ms
   // turn it off for 100ms
 
-  digitalWrite(PIN_LED_RED, OFF);
-  digitalWrite(PIN_LED_YELLOW, OFF);
-  digitalWrite(PIN_LED_GREEN, OFF);
-  digitalWrite(PIN_LED_BLUE, OFF);
+//   digitalWrite(PIN_LED_RED, OFF);
+//   digitalWrite(PIN_LED_YELLOW, OFF);
+//   digitalWrite(PIN_LED_GREEN, OFF);
+//   digitalWrite(PIN_LED_BLUE, OFF);
 
-  for (int index = 0; index < 10; index++) {
-    digitalWrite(savedLeds[index], ON);
-    delay(1000);
-    digitalWrite(savedLeds[index], OFF);
-    delay(100);
-  }
-}
+//   for (int index = 0; index < 10; index++) {
+//     digitalWrite(savedLeds[index], ON);
+//     delay(1000);
+//     digitalWrite(savedLeds[index], OFF);
+//     delay(100);
+//   }
+// }
 
-void yellow_pushbutton_isr() {
+//void yellow_pushbutton_isr() {
+ISR(INT0_vect) {
   mainEventFlags |= FLAG_YELLOW_PUSHBUTTON;
 }
 
-void red_pushbutton_isr() {
+//void red_pushbutton_isr() {
+ISR(INT1_vect) {
   mainEventFlags |= FLAG_RED_PUSHBUTTON;
 }

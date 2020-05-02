@@ -3,8 +3,11 @@
     "cSpell.words": [
         "DDRB",
         "DDRD",
+        "EICRA",
+        "EIMSK",
         "LEDs",
         "PIND",
-        "PORTD"
+        "PORTD",
+        "vect"
     ]
 }
