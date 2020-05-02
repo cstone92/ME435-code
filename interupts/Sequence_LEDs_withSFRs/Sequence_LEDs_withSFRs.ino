@@ -79,7 +79,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_RED), red_pushbutton_isr, FALLING);
 }
 
-void loop() {
+void feedbackLEDs() {
   if (bit_is_clear(REG_PIN_PUSHBUTTON_RED, BIT_PUSHBUTTON_RED)) {
     REG_PORT_LED_RED |= _BV(BIT_LED_RED);
   } else {
@@ -102,7 +102,6 @@ void loop() {
   } else {
     REG_PORT_LED_BLUE &= ~_BV(BIT_LED_BLUE);
   }
-  
 }
 
 void oldTestLoop() {
@@ -113,35 +112,39 @@ void oldTestLoop() {
   REG_PORT_LED_BLUE |= _BV(BIT_LED_BLUE);
 }
 
-void loop2() {
+void loop() {
   // give feedback when a button is pressed
-  digitalWrite(PIN_LED_RED, !digitalRead(PIN_PUSHBUTTON_RED));
-  digitalWrite(PIN_LED_YELLOW, !digitalRead(PIN_PUSHBUTTON_YELLOW));
-  digitalWrite(PIN_LED_GREEN, (digitalRead(PIN_PUSHBUTTON_GREEN) == PRESSED));
-  digitalWrite(PIN_LED_BLUE, (digitalRead(PIN_PUSHBUTTON_BLUE) == PRESSED));
+  // digitalWrite(PIN_LED_RED, !digitalRead(PIN_PUSHBUTTON_RED));
+  // digitalWrite(PIN_LED_YELLOW, !digitalRead(PIN_PUSHBUTTON_YELLOW));
+  // digitalWrite(PIN_LED_GREEN, (digitalRead(PIN_PUSHBUTTON_GREEN) == PRESSED));
+  // digitalWrite(PIN_LED_BLUE, (digitalRead(PIN_PUSHBUTTON_BLUE) == PRESSED));
+  //feedbackLEDs
 
   if (currentIndex < 10) {
     //check for yellow isr variable
     if (mainEventFlags & FLAG_YELLOW_PUSHBUTTON) {
-      delay(60);
+      delay(30);
       mainEventFlags &= ~FLAG_YELLOW_PUSHBUTTON;
-      if (digitalRead(PIN_PUSHBUTTON_YELLOW) == PRESSED) {
+      if (bit_is_clear(REG_PIN_PUSHBUTTON_YELLOW, BIT_PUSHBUTTON_YELLOW)) {
         //DO THE ACTION!
-        //add a yellow led to the saed array at the current location
-        savedLeds[currentIndex] = PIN_LED_YELLOW;
-        currentIndex++;
+        REG_PORT_LED_YELLOW ^= _BV(BIT_LED_YELLOW);  //togles
+        //
+        //add a yellow led to the send array at the current location
+        // savedLeds[currentIndex] = PIN_LED_YELLOW;
+        // currentIndex++;
       }
     }
 
     //check for RED isr variable
     if (mainEventFlags & FLAG_RED_PUSHBUTTON) {
-      delay(60);
+      delay(30);
       mainEventFlags &= ~FLAG_RED_PUSHBUTTON;
-      if (digitalRead(PIN_PUSHBUTTON_RED) == PRESSED) {
+      if (bit_is_clear(REG_PIN_PUSHBUTTON_RED, BIT_PUSHBUTTON_RED)) {
         //DO THE ACTION!
+        REG_PORT_LED_RED ^= _BV(BIT_LED_RED);  //togles
         //add a red led to the saed array at the current location
-        savedLeds[currentIndex] = PIN_LED_RED;
-        currentIndex++;
+        // savedLeds[currentIndex] = PIN_LED_RED;
+        // currentIndex++;
       }
     }
 
@@ -149,9 +152,10 @@ void loop2() {
     if (greenState != lastGreenState) {
       if (greenState == PRESSED) {
         //DO THE ACTION!
+        REG_PORT_LED_GREEN ^= _BV(BIT_LED_GREEN);  //togles
         //add a green led to the saed array at the current location
-        savedLeds[currentIndex] = PIN_LED_GREEN;
-        currentIndex++;
+        // savedLeds[currentIndex] = PIN_LED_GREEN;
+        // currentIndex++;
       }
       delay(50);
     }
@@ -162,14 +166,15 @@ void loop2() {
   if (blueState != lastBlueState) {
     if (blueState == PRESSED) {
       //DO THE ACTION!
+      REG_PORT_LED_BLUE ^= _BV(BIT_LED_BLUE);  //togles
       // run sequence
       // reset the array to all blues
       // reset the array index
-      runSequence();
-      currentIndex = 0;
-      for (int index = 0; index < 10; index++) {
-        savedLeds[index] = PIN_LED_BLUE;
-      }
+      // runSequence();
+      // currentIndex = 0;
+      // for (int index = 0; index < 10; index++) {
+      //   savedLeds[index] = PIN_LED_BLUE;
+      // }
     }
     delay(50);
   }
