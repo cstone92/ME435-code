@@ -3,14 +3,14 @@
         {
             "name": "Win32",
             "includePath": [
+                "C:\\Users\\Carson\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
+                "C:\\Users\\Carson\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.0\\**",
                 "C:\\Users\\stonecj\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
                 "C:\\Users\\stonecj\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.3\\**",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**"
             ],
-            "forcedInclude": [
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
-            ],
+            "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",
             "compilerPath": "C:\\MinGW\\bin\\gcc.exe",
             "cStandard": "c11",
