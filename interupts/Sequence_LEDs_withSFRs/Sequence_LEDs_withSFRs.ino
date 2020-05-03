@@ -38,10 +38,10 @@
 #define PRESSED LOW
 #define NOTPRESSED HIGH
 
-uint8_t blueState = HIGH;
-uint8_t lastBlueState = HIGH;
-uint8_t greenState = HIGH;
-uint8_t lastGreenState = HIGH;
+//uint8_t blueState = HIGH;
+//uint8_t lastBlueState = HIGH;
+//uint8_t greenState = HIGH;
+//uint8_t lastGreenState = HIGH;
 
 uint8_t currentIndex = 0;
 uint8_t savedLeds[10] = {BIT_LED_BLUE,
@@ -124,7 +124,7 @@ void oldTestLoop() {
   REG_PORT_LED_GREEN |= _BV(BIT_LED_GREEN);
   REG_PORT_LED_BLUE |= _BV(BIT_LED_BLUE);
 }
-
+uin
 void loop() {
   // give feedback when a button is pressed
   // digitalWrite(PIN_LED_RED, !digitalRead(PIN_PUSHBUTTON_RED));
