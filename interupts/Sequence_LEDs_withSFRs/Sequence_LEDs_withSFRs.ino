@@ -56,8 +56,12 @@ uint8_t currentIndex = 0;
                         //  PIN_LED_BLUE};
 
 volatile uint8_t mainEventFlags = 0;
-#define FLAG_YELLOW_PUSHBUTTON 0X01
-#define FLAG_RED_PUSHBUTTON 0x02
+#define FLAG_RED_PUSHBUTTON 0x01
+#define FLAG_YELLOW_PUSHBUTTON 0X02
+#define FLAG_GREEN_PUSHBUTTON 0X04
+#define FLAG_BLUE_PUSHBUTTON 0x08
+
+volatile uint8_t portdhistory = 0xFF;
 
 void setup() {
   Serial.begin(9600);
@@ -80,8 +84,11 @@ void setup() {
 
   //attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_YELLOW), yellow_pushbutton_isr, FALLING);
   //attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_RED), red_pushbutton_isr, FALLING);
-  EICRA = _BV(ISC11) | _BV(ISC01);  // set INT0 and INT1 to FALLING edge interrupts()
-  EIMSK = _BV(INT0) | _BV(INT1);    // TURNS ON BOTH INT0 AND INT1
+  //EICRA = _BV(ISC11) | _BV(ISC01);  // set INT0 and INT1 to FALLING edge interrupts()
+  //EIMSK = _BV(INT0) | _BV(INT1);    // TURNS ON BOTH INT0 AND INT1
+  PCICR = _BV(PCIE2); // Enable Pin Change Interrupts for PORT D pins
+  PCMSK2 = _BV(PCINT19) | _BV(PCINT18) | _BV(PCINT17) | _BV(PCINT16); // Enables RD0 - RD3 as interrupts
+  sei(); // Turn on interrupts globally // not required for us, since arduino does it
 }
 
 void feedbackLEDs() {
@@ -127,6 +134,19 @@ void loop() {
 
   if (currentIndex < 10) {
     //check for yellow isr variable
+
+    //check for RED isr variable
+    if (mainEventFlags & FLAG_RED_PUSHBUTTON) {
+      delay(30);
+      mainEventFlags &= ~FLAG_RED_PUSHBUTTON;
+      if (bit_is_clear(REG_PIN_PUSHBUTTON_RED, BIT_PUSHBUTTON_RED)) {
+        //DO THE ACTION!
+        REG_PORT_LED_RED ^= _BV(BIT_LED_RED);  //togles
+        //add a red led to the send array at the current location
+        // savedLeds[currentIndex] = PIN_LED_RED;
+        // currentIndex++;
+      }
+    }
     if (mainEventFlags & FLAG_YELLOW_PUSHBUTTON) {
       delay(30);
       mainEventFlags &= ~FLAG_YELLOW_PUSHBUTTON;
@@ -139,51 +159,63 @@ void loop() {
         // currentIndex++;
       }
     }
-
-    //check for RED isr variable
-    if (mainEventFlags & FLAG_RED_PUSHBUTTON) {
+    //check for GREEN isr variable
+    if (mainEventFlags & FLAG_GREEN_PUSHBUTTON) {
       delay(30);
-      mainEventFlags &= ~FLAG_RED_PUSHBUTTON;
-      if (bit_is_clear(REG_PIN_PUSHBUTTON_RED, BIT_PUSHBUTTON_RED)) {
-        //DO THE ACTION!
-        REG_PORT_LED_RED ^= _BV(BIT_LED_RED);  //togles
-        //add a red led to the saed array at the current location
-        // savedLeds[currentIndex] = PIN_LED_RED;
-        // currentIndex++;
-      }
-    }
-
-    greenState = bit_is_set(REG_PIN_PUSHBUTTON_GREEN, BIT_PUSHBUTTON_GREEN);
-    if (greenState != lastGreenState) {
-      if (greenState == PRESSED) {
+      mainEventFlags &= ~FLAG_GREEN_PUSHBUTTON;
+      if (bit_is_clear(REG_PIN_PUSHBUTTON_GREEN, BIT_PUSHBUTTON_GREEN)) {
         //DO THE ACTION!
         REG_PORT_LED_GREEN ^= _BV(BIT_LED_GREEN);  //togles
-        //add a green led to the saed array at the current location
+        //add a GREEN led to the send array at the current location
         // savedLeds[currentIndex] = PIN_LED_GREEN;
         // currentIndex++;
       }
-      delay(50);
     }
-    lastGreenState = greenState;
-  }
+    //check for BLUE isr variable
+    if (mainEventFlags & FLAG_BLUE_PUSHBUTTON) {
+      delay(30);
+      mainEventFlags &= ~FLAG_BLUE_PUSHBUTTON;
+      if (bit_is_clear(REG_PIN_PUSHBUTTON_BLUE, BIT_PUSHBUTTON_BLUE)) {
+        //DO THE ACTION!
+        REG_PORT_LED_BLUE ^= _BV(BIT_LED_BLUE);  //togles
+        //add a BLUE led to the send array at the current location
+        // savedLeds[currentIndex] = PIN_LED_BLUE;
+        // currentIndex++;
+      }
+    }        
 
-  blueState = bit_is_set(REG_PIN_PUSHBUTTON_BLUE, BIT_PUSHBUTTON_BLUE);
-  if (blueState != lastBlueState) {
-    if (blueState == PRESSED) {
-      //DO THE ACTION!
-      REG_PORT_LED_BLUE ^= _BV(BIT_LED_BLUE);  //togles
-      // run sequence
-      // reset the array to all blues
-      // reset the array index
-      // runSequence();
-      // currentIndex = 0;
-      // for (int index = 0; index < 10; index++) {
-      //   savedLeds[index] = PIN_LED_BLUE;
-      // }
-    }
-    delay(50);
+        // no polling
+    // greenState = bit_is_set(REG_PIN_PUSHBUTTON_GREEN, BIT_PUSHBUTTON_GREEN);
+    // if (greenState != lastGreenState) {
+    //   if (greenState == PRESSED) {
+    //     //DO THE ACTION!
+    //     REG_PORT_LED_GREEN ^= _BV(BIT_LED_GREEN);  //togles
+    //     //add a green led to the send array at the current location
+    //     // savedLeds[currentIndex] = PIN_LED_GREEN;
+    //     // currentIndex++;
+    //   }
+    //   delay(50);
+    // }
+    // lastGreenState = greenState;
   }
-  lastBlueState = blueState;
+      // no polling
+  // blueState = bit_is_set(REG_PIN_PUSHBUTTON_BLUE, BIT_PUSHBUTTON_BLUE);
+  // if (blueState != lastBlueState) {
+  //   if (blueState == PRESSED) {
+  //     //DO THE ACTION!
+  //     REG_PORT_LED_BLUE ^= _BV(BIT_LED_BLUE);  //togles
+  //     // run sequence
+  //     // reset the array to all blues
+  //     // reset the array index
+  //     // runSequence();
+  //     // currentIndex = 0;
+  //     // for (int index = 0; index < 10; index++) {
+  //     //   savedLeds[index] = PIN_LED_BLUE;
+  //     // }
+  //   }
+  //   delay(50);
+  // }
+  // lastBlueState = blueState;
 }
 
 //void runSequence() {
@@ -206,11 +238,38 @@ void loop() {
 // }
 
 //void yellow_pushbutton_isr() {
-ISR(INT0_vect) {
-  mainEventFlags |= FLAG_YELLOW_PUSHBUTTON;
-}
+// ISR(INT0_vect) {
+//   mainEventFlags |= FLAG_YELLOW_PUSHBUTTON;
+// }
 
 //void red_pushbutton_isr() {
-ISR(INT1_vect) {
-  mainEventFlags |= FLAG_RED_PUSHBUTTON;
+// ISR(INT1_vect) {
+//   mainEventFlags |= FLAG_RED_PUSHBUTTON;
+// }
+
+ISR(PCINT2_vect){
+  //ISR called means that RD0, RD1, RD2
+
+  uint8_t changedbits = PIND ^ portdhistory;
+  portdhistory = PIND;
+  if(changedbits & _BV(BIT_PUSHBUTTON_RED)){
+    if(bit_is_clear(REG_PIN_PUSHBUTTON_RED,BIT_PUSHBUTTON_RED)){
+      mainEventFlags |= FLAG_RED_PUSHBUTTON;
+    }
+  }
+  if(changedbits & _BV(BIT_PUSHBUTTON_YELLOW)){
+    if(bit_is_clear(REG_PIN_PUSHBUTTON_YELLOW,BIT_PUSHBUTTON_YELLOW)){
+      mainEventFlags |= FLAG_YELLOW_PUSHBUTTON;
+    }
+  }
+  if(changedbits & _BV(BIT_PUSHBUTTON_GREEN)){
+    if(bit_is_clear(REG_PIN_PUSHBUTTON_GREEN,BIT_PUSHBUTTON_GREEN)){
+      mainEventFlags |= FLAG_GREEN_PUSHBUTTON;
+    }
+  }
+  if(changedbits & _BV(BIT_PUSHBUTTON_BLUE)){
+    if(bit_is_clear(REG_PIN_PUSHBUTTON_BLUE,BIT_PUSHBUTTON_BLUE)){
+      mainEventFlags |= FLAG_BLUE_PUSHBUTTON;
+    }
+  }      
 }

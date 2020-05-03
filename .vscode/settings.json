@@ -6,8 +6,13 @@
         "EICRA",
         "EIMSK",
         "LEDs",
+        "PCICR",
+        "PCIE",
+        "PCINT",
+        "PCMSK",
         "PIND",
         "PORTD",
+        "portdhistory",
         "vect"
     ]
 }
