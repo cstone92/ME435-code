@@ -1,6 +1,5 @@
 {
-    "board": "arduino:avr:mega",
-    "port": "COM5",
-    "sketch": "timers\\BlinkWithSFR\\BlinkWithSFR.ino",
-    "configuration": "cpu=atmega2560"
+    "board": "arduino:avr:uno",
+    "port": "COM3",
+    "sketch": "timers\\TwoTimers\\TwoTimers.ino"
 }

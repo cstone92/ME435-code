@@ -5,11 +5,20 @@
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 
+// Output PORTs and BITs
+//#define REG_PORT_LED_RED PORTB
+//#define BIT_LED_RED 2
 #define REG_PORT_LED_YELLOW PORTD
 #define BIT_LED_YELLOW 7
 #define REG_PORT_LED_GREEN PORTD
 #define BIT_LED_GREEN 6
+//#define REG_PORT_LED_BLUE PORTD
+//#define BIT_LED_BLUE 5
 
+// Input PORTs and PIN reg and BITs
+//#define REG_PORT_PUSHBUTTON_RED PORTD
+//#define REG_PIN_PUSHBUTTON_RED PIND
+//#define BIT_PUSHBUTTON_RED 3
 #define REG_PORT_PUSHBUTTON_YELLOW PORTD
 #define REG_PIN_PUSHBUTTON_YELLOW PIND
 #define BIT_PUSHBUTTON_YELLOW 3
@@ -20,6 +29,8 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 #define REG_PIN_PUSHBUTTON_BLUE PIND
 #define BIT_PUSHBUTTON_BLUE 4
 
+//#define POTENTIOMETER_PIN A0
+
 #define ON HIGH
 #define OFF LOW
 
@@ -27,43 +38,31 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 #define NOTPRESSED HIGH
 
 volatile uint8_t mainEventFlags = 0;
-#define FLAG_GREEN_TIMER 0X01
+//#define FLAG_RED_PUSHBUTTON 0x01
 #define FLAG_YELLOW_PUSHBUTTON 0X02
 #define FLAG_GREEN_PUSHBUTTON 0X04
 #define FLAG_BLUE_PUSHBUTTON 0x08
 
 volatile uint8_t portdhistory = 0xFF;
 
-//   CS12  | CS11  | CS10  |  DEC |Description
-//       0 |     0 |     0 |   0  |stop timer
-//       0 |     0 |     1 |   1  |prescaler = 1 (no prescaller)
-//       0 |     1 |     0 |   2  |prescaler = 8
-//       0 |     1 |     1 |   3  |prescaler = 64
-//       1 |     0 |     0 |   4  |prescaler = 256
-//       1 |     0 |     1 |   5  |prescaler = 1024
-uint8_t Timer1Prescaler = 0x03;
+//uint8_t yellowCount = 0;
+//uint8_t greenCount = 0;
+//uint16_t time = 0;
+//uint16_t newTime = 0;
 
-//   CS22  | CS21  | CS20  |  DEC |Description
-//       0 |     0 |     0 |   0  |stop timer
-//       0 |     0 |     1 |   1  |prescaler = 1 (no prescaller)
-//       0 |     1 |     0 |   2  |prescaler = 8
-//       0 |     1 |     1 |   3  |prescaler = 32
-//       1 |     0 |     0 |   4  |prescaler = 64
-uint8_t Timer2Prescaler = 0x04;
+//String bottomRow;
+//String timeNum;
+//String yellowNum;
+//String greenNum;
 
-// counter and compare values
-#define TIMER_1_START 0
-#define TIMER_1_COMPARE 24999  // 0 - 65535
+//boolean updateLCD = false;      // triggered whenever something changes on display to refresh and updateLCD
 
-// counter and compare values
-#define TIMER_2_START 0
-#define TIMER_2_COMPARE 249  // 0 - 256
-
-unsigned long yellowTenthsSecond = 0;
+unsigned long yellowTimer = 0;
 boolean isYellowRunning = false;
 
-unsigned long greenCounter = 1;
+unsigned long greenTimer = 0;
 boolean isGreenRunning = false;
+
 
 unsigned long elapsedTime = 0;
 unsigned long currentTime = 0;
@@ -75,54 +74,38 @@ void setup() {
   //////////////// initialize display  ///////////
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  refresh();  // Print a message to the LCD.
+  refresh();
+  // Print a message to the LCD.
+  //lcd.print("Carson Stone");
 
-  ///////////////// Timer1 ///////////////////////
-  // Reset Timer1 Control Reg A
-  TCCR1A = 0;
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  //lcd.setCursor(0, 1);
+  //lcd.print yellowTimer
+  // form string to put on LCD display
+  //yellowNum = String(yellowCount, DEC);
+  //greenNum = String(greenCount, DEC);
+  //timeNum = String(time, DEC);
 
-  // set waveform generation mode WGM
-//   TCCR1B &= ~_BV(WGM13);  //clears
-//   TCCR1B &= ~_BV(WGM12);  //clears
-//   TCCR1B &= ~_BV(WGM11);  //clears
-//   TCCR1B &= ~_BV(WGM10);  //clears
-//   TCCR1B |= _BV(WGM12);   //sets
-
-  // Set Prescaller of 256
-  TCCR1B &= ~0b111;  // set the three bits in TCCR2B to 0 (clears prescaler)
-  TCCR1B = (TCCR1B & 0b11111000) | (Timer1Prescaler);
-
-  TCNT1 = TIMER_1_START;    // Reset Timer1
-  OCR1A = TIMER_1_COMPARE;  // set compare values
-  TIMSK1 = _BV(OCIE1A);     // Enable timer1 compare interrupt
-
-  ///////////////// Timer2///////////////////////
-  // Reset Timer1 Control Reg A
-  TCCR2A = 0;
-
-  // set waveform generation mode WGM
-//   TCCR2B &= ~_BV(WGM22);  //clears
-//   TCCR2B &= ~_BV(WGM21);  //clears
-//   TCCR2B &= ~_BV(WGM20);  //clears
-//   TCCR2B |= _BV(WGM22);   //sets
-
-  // Set Prescaller of 256
-  TCCR2B &= ~0b111;  // set the three bits in TCCR2B to 0 (clears prescaler)
-  TCCR2B = (TCCR2B & 0b11111000) | (Timer2Prescaler);
-
-  TCNT2 = TIMER_2_START;    // Reset Timer1
-  OCR2A = TIMER_2_COMPARE;  // set compare values
-  TIMSK2 = _BV(OCIE2A);     // Enable timer1 compare interrupt
+  //bottomRow = String("Y=" + yellowNum + " G=" + greenNum + " T=" + time);
+  //lcd.print(bottomRow);
 
   /////////////////// setup I/O ///////////////////
+  //DDRB |= _BV(BIT_LED_RED);     //pinMode(PIN_LED_RED, OUTPUT);  // output = 1 input = 0
   DDRB |= _BV(BIT_LED_YELLOW);  //pinMode(PIN_LED_YELLOW, OUTPUT);
   DDRD |= _BV(BIT_LED_GREEN);   //pinMode(PIN_LED_GREEN, OUTPUT);
+  //DDRD |= _BV(BIT_LED_BLUE);    //pinMode(PIN_LED_BLUE, OUTPUT);
   // all other bits are left as input which is default
 
   // enable the pullup resistors
+  //REG_PORT_PUSHBUTTON_RED |= _BV(BIT_PUSHBUTTON_RED);
   REG_PORT_PUSHBUTTON_YELLOW |= _BV(BIT_PUSHBUTTON_YELLOW);
   REG_PORT_PUSHBUTTON_GREEN |= _BV(BIT_PUSHBUTTON_GREEN);
   REG_PORT_PUSHBUTTON_BLUE |= _BV(BIT_PUSHBUTTON_BLUE);
+  // pinMode(PIN_PUSHBUTTON_RED, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_YELLOW, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_GREEN, INPUT_PULLUP);
+  // pinMode(PIN_PUSHBUTTON_BLUE, INPUT_PULLUP);
 
   /////////////////// setup interrupts //////////////////////
   //attachInterrupt(digitalPinToInterrupt(PIN_PUSHBUTTON_YELLOW), yellow_pushbutton_isr, FALLING);
@@ -131,40 +114,31 @@ void setup() {
   //EIMSK = _BV(INT0) | _BV(INT1);    // TURNS ON BOTH INT0 AND INT1
   PCICR = _BV(PCIE2);                                   // Enable Pin Change Interrupts for PORT D pins
   PCMSK2 = _BV(PCINT19) | _BV(PCINT18) | _BV(PCINT20);  // Enables RD2 - RD4 as interrupts
-  sei();                                                // Enable global interrupts                                              // Turn on interrupts globally // not required for us, since arduino does it
+  sei();                                                // Turn on interrupts globally // not required for us, since arduino does it
 }
 
 void loop() {
-  checkFlags();
-
-  refresh();
-  delay(100);
-}
-
-void refresh() {
-  // set the cursor to column 0, line 1
-  lcd.setCursor(0, 0);
-  lcd.print(yellowTenthsSecond / 10);
-  lcd.print(".");
-  lcd.print(yellowTenthsSecond % 10);
-
-  //if (!isGreenRunning) {
-  lcd.setCursor(0, 1);
-  lcd.print(greenCounter/1000);
-  lcd.print(".");
-  lcd.print((greenCounter/100)%10);
-  //}
-}
-
-void checkFlags() {
+  
+  currentTime = millis();
+  elapsedTime = currentTime - priorTime;
+  priorTime = currentTime;
+  
   // check for yellow isr variable
   if (mainEventFlags & FLAG_YELLOW_PUSHBUTTON) {
     delay(16);
     mainEventFlags &= ~FLAG_YELLOW_PUSHBUTTON;
     if (bit_is_clear(REG_PIN_PUSHBUTTON_YELLOW, BIT_PUSHBUTTON_YELLOW)) {
       //DO THE ACTION!
+      //REG_PORT_LED_YELLOW |= _BV(BIT_LED_YELLOW);
+      //REG_PORT_LED_GREEN &= ~_BV(BIT_LED_GREEN);
+      //Serial.println("Press yellow");
+      //yellowCount++;
+      
       isYellowRunning = !isYellowRunning;
-      REG_PORT_LED_YELLOW ^= _BV(BIT_LED_YELLOW);
+      REG_PORT_LED_YELLOW ^= _BV(BIT_LED_YELLOW);        
+      
+      
+      //updateLCD = true;
     }
   }
 
@@ -174,10 +148,18 @@ void checkFlags() {
     mainEventFlags &= ~FLAG_GREEN_PUSHBUTTON;
     if (bit_is_clear(REG_PIN_PUSHBUTTON_GREEN, BIT_PUSHBUTTON_GREEN)) {
       //DO THE ACTION!
+      //REG_PORT_LED_GREEN |= _BV(BIT_LED_GREEN);
+      //REG_PORT_LED_YELLOW &= ~_BV(BIT_LED_YELLOW);
+      //Serial.println("Press green");
+      //greenCount++;
+      //updateLCD = true;
+      
+            
       isGreenRunning = !isGreenRunning;
-      REG_PORT_LED_GREEN ^= _BV(BIT_LED_GREEN);
-      if (isGreenRunning) {
-        lcd.clear();
+      REG_PORT_LED_GREEN ^= _BV(BIT_LED_GREEN); 
+      
+      if(isGreenRunning){
+       lcd.clear(); 
       }
     }
   }
@@ -190,17 +172,60 @@ void checkFlags() {
       //DO THE ACTION!
       REG_PORT_LED_GREEN &= ~_BV(BIT_LED_GREEN);
       REG_PORT_LED_YELLOW &= ~_BV(BIT_LED_YELLOW);
-      yellowTenthsSecond = 0;
-      greenCounter = 0;
-      isYellowRunning = false;
-      isGreenRunning = false;
+      //yellowCount = 0;
+      //greenCount = 0;
+      
       lcd.clear();
+      
+      yellowTimer = 0;
+      greenTimer = 0;
+      
+      //updateLCD = true;
     }
   }
+  if(isYellowRunning){
+   yellowTimer += elapsedTime; 
+  }
+  if(isGreenRunning){
+   greenTimer += elapsedTime; 
+  }
+  
+  refresh();
+  delay(32);
+
+}
+
+void refresh() {
+  //lcd.clear();
+  //lcd.print("Carson Stone");
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  lcd.setCursor(0, 0);
+  lcd.print(yellowTimer / 1000);
+  lcd.print(".");
+  lcd.print((yellowTimer/100)%10);
+  
+  if(!isGreenRunning){
+  lcd.setCursor(0, 1);
+  lcd.print(greenTimer / 1000);
+  lcd.print(".");
+  lcd.print((greenTimer/100)%10);
+  }
+
+  // form string to put on LCD display
+  //yellowNum = String(yellowCount, DEC);
+  //greenNum = String(greenCount, DEC);
+  //timeNum = String(time, DEC);
+
+  //bottomRow = String("Y=" + yellowNum + " G=" + greenNum + " T=" + time);
+  //lcd.print(bottomRow);
+
+  //updateLCD = false;
 }
 
 ISR(PCINT2_vect) {
   //ISR called means that RD0, RD1, RD2
+
   uint8_t changedbits = PIND ^ portdhistory;
   portdhistory = PIND;
   if (changedbits & _BV(BIT_PUSHBUTTON_YELLOW)) {
@@ -217,19 +242,5 @@ ISR(PCINT2_vect) {
     if (bit_is_clear(REG_PIN_PUSHBUTTON_BLUE, BIT_PUSHBUTTON_BLUE)) {
       mainEventFlags |= FLAG_BLUE_PUSHBUTTON;
     }
-  }
-}
-
-ISR(TIMER1_COMPA_vect) {
-    TCNT1 = TIMER_1_START;
-  if (isYellowRunning) {
-    yellowTenthsSecond++;
-  }
-}
-
-ISR(TIMER2_COMPA_vect) {
-    TCNT2 = TIMER_2_START;
-  if (isGreenRunning) {
-    greenCounter++;
   }
 }
