@@ -148,12 +148,12 @@ void refresh() {
   lcd.print(".");
   lcd.print(yellowTenthsSecond % 10);
 
-  //if (!isGreenRunning) {
+  if (!isGreenRunning) {
   lcd.setCursor(0, 1);
   lcd.print(greenCounter/1000);
   lcd.print(".");
   lcd.print((greenCounter/100)%10);
-  //}
+  }
 }
 
 void checkFlags() {
