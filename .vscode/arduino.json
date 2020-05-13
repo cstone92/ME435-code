@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM3",
-    "sketch": "timers\\TwoTimers\\TwoTimers.ino"
+    "sketch": "Exam2_Stone\\Exam2_Stone.ino"
 }
